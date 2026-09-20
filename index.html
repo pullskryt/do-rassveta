@@ -139,6 +139,28 @@ body.touch #feed{bottom:calc(env(safe-area-inset-bottom) + 96px);max-width:calc(
 .mp{position:absolute;top:-2px;bottom:-2px;width:4px;background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .mdots{display:flex;gap:6px;justify-content:center;margin:8px 0}.mdots i{width:10px;height:10px;border-radius:50%;background:#2a3b40}.mdots i.h{background:var(--ok)}.mdots i.m{background:var(--blood)}
 #mini button{width:100%;min-height:52px;font-size:17px;margin-top:2px}
+/* лечение: фазы ран как в SCUM */
+.ph2{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:10px;margin:2px 0}
+.ph-bleed{background:#6d1a18;color:#ffd9d4;animation:pulse 1.1s infinite}
+.ph-inf{background:#6d1a18;color:#ffd9d4}
+.ph-dirty{background:#6d5320;color:#ffe9b8}
+.ph-stable{background:#23503b;color:#c9f0d9}
+.ph-heal{background:#1d3a4a;color:#cfe7ee}
+.wbars{display:grid;gap:3px;margin:6px 0;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.wbar{display:grid;grid-template-columns:86px 1fr 34px;gap:6px;align-items:center}
+.wbar .tr{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.wbar .tr i{display:block;height:100%}
+.plan{margin:6px 0;padding:7px 9px;border-left:3px solid var(--ok);background:rgba(111,174,138,.07);font-size:13px;line-height:1.5}
+.plan b{color:#c9f0d9}.plan .done{color:var(--dim);text-decoration:line-through}
+.plan .nxt{color:#ffe9b8;font-weight:700}
+/* полоса текущего действия на экране */
+#actbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 168px);transform:translateX(-50%);width:min(92vw,420px);background:rgba(9,15,18,.92);border:1px solid #5a7a86;border-radius:8px;padding:8px 12px;z-index:39;pointer-events:none;text-align:center}
+#actbar .t{font-size:14px;margin-bottom:6px}
+#actbar .tr{height:8px;background:#0d1a1f;border:1px solid #2f4a52;border-radius:4px;overflow:hidden}
+#actbar .fl{height:100%;background:var(--amber);transition:width .1s linear}
+#lsbanner{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);z-index:50;pointer-events:none;text-align:center;padding:18px 26px;background:rgba(20,6,6,.9);border:2px solid #c8403a;border-radius:10px;max-width:92vw}
+#lsbanner h2{margin:0;font-family:var(--serif);font-size:30px;color:#ffd9d4}
+#lsbanner p{margin:6px 0 0;font-size:15px;color:#f1cd7a}
 /* меню / экраны */
 .center{text-align:center}.title{font-family:var(--serif);font-size:clamp(36px,9vw,64px);font-weight:700;margin:0;color:#eaf1ea;letter-spacing:1px}
 .tag2{font-family:var(--serif);font-style:italic;color:var(--dim);font-size:clamp(15px,3.6vw,19px);margin:4px 0 20px}
@@ -182,6 +204,8 @@ body.touch #feed{bottom:calc(env(safe-area-inset-bottom) + 96px);max-width:calc(
   <button class="tbtn" id="bRest"><span>☾</span>Лечь</button>
 </div>
 <div id="panels"></div>
+<div id="actbar" class="hide"><div class="t" id="actbar-t"></div><div class="tr"><div class="fl" id="actbar-f"></div></div></div>
+<div id="lsbanner" class="hide"><h2>ПОСЛЕДНИЙ ШАНС</h2><p id="lsbanner-t"></p></div>
 <script>
 'use strict';
 /* ================= ЯДРО: константы, утилиты, шум, DOM-хелпер ================= */
@@ -421,7 +445,17 @@ J('spruce','place','Старая Ель','Пень. Огромный. Кольц
 J('pusha','place','Пуща','Лес, который слушает.',[
  ['a','Ей нечего просить у мёртвых. Она просит у живых.','Прочитать все записки.'],
  ['b','Каждый вызов — приглашение. Каждый ответ — согласие.','Дожить до третьей ночи.']],
- {req:'end.any',t:'Ты не выжил в ней. Ты с ней договорился. Или она с тобой.'});
+  {req:'end.any',t:'Ты не выжил в ней. Ты с ней договорился. Или она с тобой.'});
+J('aid','place','Полевая медицина','Порядок, который спасает: кровь — грязь — шов — покой.',[
+ ['stop','Сначала останови кровь: давление рукой, повязка, жгут на конечность. Кровь важнее грязи.','Остановить сильное кровотечение.'],
+ ['wash','Потом промой: чистая вода, физраствор, йод или спирт. Грязную под швом ждёт гной.','Обработать рану.'],
+ ['close','Шей только чистую: шовный набор или игла с нитью. Грязную — вскрой и промой снова.','Зашить чистую рану.'],
+ ['tq','Жгут — не дольше двух часов. Запомни время, ослабь раньше, чем ткани начнут умирать.','Снять жгут вовремя.'],
+ ['abx','Гной, отёк и жар — инфекция. Антибиотик курсом, чистка, смена повязки.','Вылечить инфекцию.']]);
+J('laststand','place','Последний шанс','Раз в забег рассудок может вытащить с того света. Как в Casualties: Unknown — решает не удача, а то, в каком ты был состоянии.',[
+ ['mood','Шанс зависит от рассудка несколько минут назад: спокойный и собранный выживает почти всегда, сломленный — почти никогда.','Пережить последний шанс.'],
+ ['once','Срабатывает один раз за забег. Мгновенная гибель головы или груди не оставляет шанса.','Использовать последний шанс.'],
+ ['back','Вернувшийся получает кровь, воздух и несколько минут иммунитета — но враги никуда не делись.','Встать после последнего шанса.']]);
 /* --- записки --- */
 J('n_call','note','Карта вызова № 4471','Бумага из планшета.',[],null,{text:
 'КАРТА ВЫЗОВА № 4471\nПринят: 21:47\nПовод: роды, схватки каждые 3–4 минуты.\nАдрес: п. Лог-7, ул. Лесная, 3.\nПациентка: Кожевникова М. А., 27 лет.\n\nПримечание диспетчера: адреса на карте нет.\nГолос настойчивый. Ехать.'});
@@ -769,7 +803,56 @@ function bodyTick(b,dm,env){
   else if(b.dehyd>200)dead=['Обезвоживание','Ни глотка воды слишком долго.'];
   else if(b.starve>420)dead=['Истощение','Тело сожгло всё, что было.'];
   else if(b.poison>=100)dead=['Отравление','Яд оказался сильнее.'];
+  if(dead&&G.god)dead=null;
+  if(dead&&tryLastStand(b,dead))dead=null;
   if(dead)b.dead={cause:dead[0],detail:dead[1],at:clockNow()};
+}
+/* ---- ПОСЛЕДНИЙ ШАНС (ласт-стенд как в Casualties: Unknown) ----
+   Раз в забег смертельный исход может откатить: шанс зависит от рассудка
+   несколько минут назад (аналог Mood в CU). Мгновенное разрушение головы/груди
+   шанс не даёт — как brain=0 в CU. Вернувшийся может тут же погибнуть снова. */
+function moodForLastStand(){
+  const hh=G.moodHist||[];
+  if(hh.length>300)return hh[hh.length-300];
+  if(hh.length)return hh[0];
+  return G.P?G.P.body.sanity:50;
+}
+function lastStandChance(m){
+  if(m>=70)return 1;if(m>=60)return 0.92;if(m>=50)return 0.84;if(m>=40)return 0.75;
+  if(m>=30)return 0.67;if(m>=20)return 0.60;if(m>=10)return 0.50;if(m>=0)return 0.20;
+  if(m>-10)return 0.20;if(m>=-10)return 0.10;if(m>-20)return 0.05;return 0;
+}
+function showLastStandBanner(txt){
+  const b=document.getElementById('lsbanner');if(!b)return;
+  document.getElementById('lsbanner-t').textContent=txt;
+  b.classList.remove('hide');clearTimeout(showLastStandBanner._t);
+  showLastStandBanner._t=setTimeout(()=>b.classList.add('hide'),4500);
+}
+function tryLastStand(b,cause){
+  if(!b||b.dead||G.flags.lastStandUsed)return false;
+  if(b.parts.head.hp<=0||b.parts.chest.hp<=0)return false;
+  const m=moodForLastStand(),ch=lastStandChance(m);
+  if(Math.random()>ch){
+    if(ch>0)blog('Что-то внутри цепляется… но сил не хватает.','warn');
+    return false;
+  }
+  G.flags.lastStandUsed=1;
+  b.blood=Math.max(b.blood,4700);
+  for(const pid in b.parts){const p=b.parts[pid];
+    for(const w of p.wounds){w.inf=0;w.stage=0;w.dirt=0;w.hemo=25;w.sealedDirty=false;}
+    p.internal=0;p.hp=Math.min(100,p.hp+30);}
+  b.sepsis=0;b.abx=Math.max(b.abx,240);
+  b.energy=100;b.temp=37.5;b.cons=85;b.unc=false;b.uncT=0;b.spo2=Math.max(b.spo2,98);
+  b.pneumo=0;b.poison=0;b.nausea=0;
+  b.sanity=Math.max(b.sanity,70);b.painSpike=0;
+  if(G.P){G.P.iframes=5;G.P.stun=0;}
+  jSeen('laststand');learn('laststand','once');learn('laststand','mood');learn('laststand','back');
+  G.cam.shake=8;G.damageFlash=0.6;
+  blog('Сердце бьётся снова. Ты встаёшь — последний шанс ('+cause[0].toLowerCase()+').','good');
+  logTreat('ПОСЛЕДНИЙ ШАНС: рассудок вытащил с того света. Добей лечение, пока враги рядом!','good');
+  showLastStandBanner('Рассудок '+Math.round(m)+'% · шанс '+Math.round(ch*100)+'%. Раны почти полностью закрыты, кровь и силы восстановлены.');
+  try{if(typeof sfx==='function')sfx('page');}catch(e){}
+  return true;
 }
 /* Нужные интерфейсу тексты */
 function bodyAdvice(b){
@@ -1017,6 +1100,7 @@ function armorFor(pid){
 }
 function attackPlayer(e,kind){
   const P=G.P,b=P.body;if(b.dead||P.iframes>0)return;
+  if(G.god)return;
   const pid=wpick(ATKP[kind]);const arm=armorFor(pid);
   let size=kind==='claw'?rint(2,3):kind==='rat'?1:(()=>{const r=Math.random();return r<0.5?1:r<0.9?2:3;})();
   if(arm>0&&chance(arm*0.9))size-=1;
@@ -1204,6 +1288,10 @@ function updateEnts(dt){
     if(e.stun>0){e.stun-=dt;continue;}
     if(e.trapped>0){e.trapped-=dt;continue;}
     AI[e.t](e,dt,d);
+    if(!e.dead&&!EDEF[e.t].ghost&&!EDEF[e.t].fly&&(e.t==='wolf'||e.t==='boar'||e.t==='bear'||e.t==='rat')){
+      const sx=e.x-P.x,sy=e.y-P.y,sd=Math.hypot(sx,sy),min=P.r+e.r-2;
+      if(sd<min&&sd>0.01)moveBody(e,sx/sd*(min-sd),sy/sd*(min-sd));
+    }
     if(!EDEF[e.t].fly&&!EDEF[e.t].ghost)checkTraps(e);
   }
   G.ents=G.ents.filter(e=>!e.dead);
@@ -1217,19 +1305,19 @@ function updateSpawner(dt){
   for(const k in sp)sp[k]-=dt;
   if(G.phase==='night'){
     if(sp.wolf<=0){
-      sp.wolf=Math.max(24,rnd(40,72)-night*4);
-      const n=clamp(1+(night>=2?rint(0,1):0)+(night>=4?1:0),1,3);
+      sp.wolf=Math.max(G.runMode==='survival'?12:24,rnd(40,72)-night*4);
+      const n=clamp(1+(night>=2?rint(0,1):0)+(night>=4?1:0)+(G.runMode==='survival'&&night>=6?1:0),1,4);
       const pos=walkableSpawn(P.x,P.y,520,640);
-      if(pos&&countEnt('wolf')<5){for(let i=0;i<n;i++)spawnEnt('wolf',pos.x+rnd(-30,30),pos.y+rnd(-30,30),{tm:rnd(10,20)});
+      if(pos&&countEnt('wolf')<(G.runMode==='survival'?Math.min(5+Math.floor(night/2),10):5)){for(let i=0;i<n;i++)spawnEnt('wolf',pos.x+rnd(-30,30),pos.y+rnd(-30,30),{tm:rnd(10,20)});
         if(!G.flags.howl){G.flags.howl=1;blog('Вдали завыли волки.','warn');}sfx('howl');}
     }
-    if(night>=3&&!sp.bearDone&&sp.bear<=0){
-      sp.bearDone=1e9;const pos=walkableSpawn(P.x,P.y,600,720);
+    if(night>=3&&sp.bear<=0&&(!sp.bearDone||G.runMode==='survival')){
+      if(G.runMode!=='survival')sp.bearDone=1e9;const pos=walkableSpawn(P.x,P.y,600,720);
       if(pos){spawnEnt('bear',pos.x,pos.y);blog('Хруст веток. Тяжёлое дыхание где-то в чаще.','bad');learn('bear','roar');sfx('roar');}
     }
     if((night>=2||G.weather.fog>0.4)&&sp.silent<=0){
       sp.silent=rnd(70,130)-night*5;
-      if(countEnt('silent')<(night>=4?2:1)&&(P.body.sanity<75||G.weather.fog>0.4||night>=3)){
+      if(countEnt('silent')<(G.runMode==='survival'?Math.min(1+Math.floor(night/3),3):(night>=4?2:1))&&(P.body.sanity<75||G.weather.fog>0.4||night>=3)){
         const pos=walkableSpawn(P.x,P.y,380,470);if(pos)spawnEnt('silent',pos.x,pos.y,{fade:0});}
     }
     if(sp.echo<=0){
@@ -1569,6 +1657,7 @@ function objCandidates(o,sc,add){
   }
 }
 function useRadio(){
+  if(G.runMode==='survival'){toast('Рация молчит: в выживании вертолёта не будет. Держись, сколько сможешь.','warn');return;}
   if(G.flags.radio){toast('Рация настроена. Дожидайся рассвета здесь.','info');return;}
   const need=['car_battery','radio_coil','antenna'],miss=need.filter(i=>invCount(i)<1);
   if(miss.length){toast('Не хватает: '+miss.map(i=>ITEMS[i].n).join(', ')+'.','warn');learn('p_station','radio');return;}
@@ -1605,7 +1694,8 @@ function playerAttack(){
   for(const e of G.ents){if(e.dead||EDEF[e.t].ghost||e.t==='raven')continue;
     const d=Math.hypot(e.x-P.x,e.y-P.y),reach=w.reach+e.r+P.r;
     if(d>reach+(assist?40:0))continue;
-    const dd=Math.abs(angDiff(Math.atan2(e.y-P.y,e.x-P.x),P.aim));if(dd>(assist?1.6:0.95))continue;
+    const touching=d<P.r+e.r+6;
+    if(!touching){const dd=Math.abs(angDiff(Math.atan2(e.y-P.y,e.x-P.x),P.aim));if(dd>(assist?1.6:0.95))continue;}
     if(d<bd){bd=d;best=e;}}
   P.atkCd=w.cd/(0.6+0.4*hf);P.swing=0.22;
   if(best&&assist&&bd>w.reach)P.aim=Math.atan2(best.y-P.y,best.x-P.x);
@@ -1663,15 +1753,21 @@ function updatePlayer(dt){
   if(wantSprint&&P.stam>3)sp=CFG.RUN;
   P.sprint=wantSprint&&P.stam>0;
   sp*=mf*(1-b.pain/300)*(wt>cap?clamp(1-(wt-cap)/28,0.5,1):1)*(b.cons<55?0.8:1)*(b.temp<34?0.85:1)*tileSpeed(P.x,P.y);
-  if(b.dizzy>0.35){const t=G.time;mx+=Math.sin(t*1.9)*b.dizzy*0.35;my+=Math.cos(t*1.3)*b.dizzy*0.35;}
-  const moving=(mx||my)&&!down;
-  if(moving){
-    if(P.resting){P.resting=false;}
-    if(P.act&&P.act.mv)interruptAction('Ты отвлёкся.');
-    const m=sp*dt;moveBody(P,mx*m,my*m);
-    P.walkT+=dt*(sp/CFG.WALK);
-    if(!inp.usingMouse||inp.aim===null)P.aim+=angDiff(Math.atan2(my,mx),P.aim)*Math.min(1,dt*14);
-  }
+   const imx=mx,imy=my,hasIntent=!!(imx||imy)&&!down;
+   let wmx=0,wmy=0;
+   if(b.dizzy>0.35&&!down){const t=G.time;wmx=Math.sin(t*1.9)*b.dizzy*0.12;wmy=Math.cos(t*1.3)*b.dizzy*0.12;}
+   mx=imx+wmx*(hasIntent?1:0.25);my=imy+wmy*(hasIntent?1:0.25);
+   const _ml=Math.hypot(mx,my);if(_ml>1){mx/= _ml;my/= _ml;}
+   const moving=hasIntent;
+   if(moving){
+     if(P.resting){P.resting=false;}
+     if(P.act&&P.act.mv)interruptAction('Ты отвлёкся.');
+     const m=sp*dt;moveBody(P,mx*m,my*m);
+     P.walkT+=dt*(sp/CFG.WALK);
+     if(!inp.usingMouse||inp.aim===null){const _aa=Math.atan2(imy,imx);if(isFinite(_aa))P.aim+=angDiff(_aa,P.aim)*Math.min(1,dt*14);}
+   }else if(!down&&(wmx||wmy)){
+     const m=sp*dt*0.12;moveBody(P,wmx*m,wmy*m);
+   }
   if(inp.aim!==null&&inp.aim!==undefined&&inp.usingMouse)P.aim=inp.aim;
   P.speed=moving?sp:0;
   P.exert=lerp(P.exert,moving?(P.sprint?1:0.35):0,Math.min(1,dt*2));
@@ -1780,65 +1876,129 @@ function startTreat(key,pid,wid,item){
 }
 function def_g(pid){return PART[pid].g;}
 function labelFor(key,pid){return {wash:'Промываешь рану…',dress:'Накладываешь повязку…',undress:'Снимаешь повязку…',drain:'Вскрываешь гнойник…',hemo:'Сыплешь гемостатик…',cauter:'Прижигаешь рану…',tq:'Затягиваешь жгут…',untq:'Снимаешь жгут…',splint:'Накладываешь шину…',unsplint:'Снимаешь шину…'}[key]||'Лечишь…';}
+/* ---- понятное лечение как в SCUM: фаза раны, план шагов, экран и журнал ---- */
+function woundPhase(b,p,pid,w){
+  const br=woundBleed(b,p,pid,w);
+  if(br>2)return {key:'bleed',label:'КРОВОТЕЧЕНИЕ',cls:'ph-bleed'};
+  if(w.inf>=35)return {key:'inf',label:'ИНФЕКЦИЯ',cls:'ph-inf'};
+  if(w.bandage&&w.bandage.soak>=w.bandage.cap)return {key:'dirty',label:'ПОВЯЗКА ПРОМОКЛА',cls:'ph-dirty'};
+  if(w.dirt>=65)return {key:'dirty',label:'ГРЯЗНАЯ РАНА',cls:'ph-dirty'};
+  if(w.stitched||w.cauter||(w.bandage&&!w.bandage.dirty))return {key:'stable',label:'СТАБИЛИЗИРОВАНА',cls:'ph-stable'};
+  if(br>=0.4||w.dirt>=12||w.bandage)return {key:'dirty',label:'ТРЕБУЕТ ОБРАБОТКИ',cls:'ph-dirty'};
+  return {key:'heal',label:'ЗАЖИВАЕТ',cls:'ph-heal'};
+}
+function treatPlan(b,p,pid,w){
+  const steps=[],br=woundBleed(b,p,pid,w);
+  const bloodDone=br<0.6||w.stitched||w.cauter||w.hemo>0||!!w.bandage||p.press||isTQ(b,pid);
+  steps.push({t:'Останови кровь: '+(isTQ(b,pid)?'жгут держит':w.bandage?'повязка наложена':p.press?'давишь рукой':'давление / повязка / жгут'),done:bloodDone});
+  const cleanDone=w.dirt<25&&w.inf<10;
+  steps.push({t:'Промой рану: '+(cleanDone?'чистая':'вода / йод / спирт'),done:cleanDone});
+  if(WT[w.type].stitch)steps.push({t:'Зашей чистую рану'+(w.stitched?' — зашита':''),done:!!w.stitched});
+  if(w.inf>=10||w.dirt>=35)steps.push({t:'Следи за заражением: '+(w.inf>=35?'нужны антибиотик и чистка':'смени повязку'),done:w.inf<10&&w.dirt<25});
+  if(!w.bandage&&!w.stitched&&br>=0.4)steps.push({t:'Наложи повязку',done:false});
+  else if(w.bandage)steps.push({t:'Меняй повязку, когда промокнет',done:w.bandage.soak<w.bandage.cap});
+  return steps;
+}
+function floatText(txt,cls){
+  G.texts.push({txt,cls:cls||'',t:0,life:2.6,x:G.P.x+rnd(-8,8),y:G.P.y-26});
+  if(G.texts.length>12)G.texts.shift();
+}
+function logTreat(msg,cls,learnFn){
+  blog(msg,cls||'info');floatText(msg,cls||'info');
+  if(!G.treatLog)G.treatLog=[];
+  G.treatLog.push({t:clockNow(),m:msg});if(G.treatLog.length>40)G.treatLog.shift();
+  if(learnFn)try{learnFn();}catch(e){}
+  if(typeof toast==='function')toast(msg,cls||'info');
+}
+function updateActbar(){
+  const el=document.getElementById('actbar');if(!el)return;
+  const P=G.P,a=P&&P.act;
+  if(a&&G.mode==='play'){el.classList.remove('hide');
+    document.getElementById('actbar-t').textContent=a.label+' '+Math.round(clamp(a.t/a.dur,0,1)*100)+'%';
+    document.getElementById('actbar-f').style.width=(clamp(a.t/a.dur,0,1)*100)+'%';
+  }else if(G.mini){el.classList.remove('hide');
+    document.getElementById('actbar-t').textContent=G.mini.title+': жми в зелёной зоне ('+G.mini.hits+'/'+G.mini.round+')';
+    document.getElementById('actbar-f').style.width='100%';
+  }else el.classList.add('hide');
+}
+function drawTexts(){
+  const P=G.P;if(!P)return;
+  ctx.font='bold 13px "Alegreya Sans",sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+  G.texts=G.texts.filter(o=>o.t<o.life);
+  for(const o of G.texts){
+    const k=o.t/o.life,a=k<0.15?k/0.15:k>0.7?(1-k)/0.3:1;
+    const [sx,sy]=w2s(o.x,o.y-(o.t*22));
+    ctx.globalAlpha=clamp(a,0,1);
+    ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';
+    const col=o.cls==='bad'?'#ff8a80':o.cls==='warn'?'#f1cd7a':o.cls==='good'?'#9be0b7':'#e6efe9';
+    ctx.strokeText(o.txt,sx,sy);ctx.fillStyle=col;ctx.fillText(o.txt,sx,sy);
+    ctx.globalAlpha=1;o.t+=1/60;
+  }
+}
 function applyTreat(key,pid,wid,item,q){
   const P=G.P,b=P.body,p=b.parts[pid],w=wid?p.wounds.find(x=>x.id===wid):null;
   const spike=(v)=>{b.painSpike+=v*(1-0.6*Math.min(1,b.pk));};
+  const nm=PART[pid].on;
   switch(key){
    case 'wash':{
      if(!w||!invTake(item,1))return;
-     if(item==='bottle_clean'){invAdd('bottle',1);w.dirt=Math.max(0,w.dirt-30);}
-     else if(item==='bottle_dirty'){invAdd('bottle',1);w.dirt=Math.min(100,w.dirt+12);blog('Грязная вода только добавила грязи.','bad');}
-     else if(item==='saline'){w.dirt=Math.max(0,w.dirt-45);learnItem('saline','use');}
-     else if(item==='alcohol'){w.dirt=Math.max(0,w.dirt-55);w.protect=45;spike(22);learnItem('alcohol','use');}
-     else if(item==='antiseptic'){w.dirt=Math.max(0,w.dirt-45);w.protect=90;spike(8);learnItem('antiseptic','use');}
-     blog('Рана '+PART[pid].on+' обработана.','info');break;}
+     if(item==='bottle_clean'){invAdd('bottle',1);w.dirt=Math.max(0,w.dirt-30);logTreat('Промыл рану '+nm+' чистой водой: грязь смыта.','good',()=>{learn('aid','wash');});}
+     else if(item==='bottle_dirty'){invAdd('bottle',1);w.dirt=Math.min(100,w.dirt+12);logTreat('Промыл грязной водой — стало только хуже. Нужна чистая.','bad');}
+     else if(item==='saline'){w.dirt=Math.max(0,w.dirt-45);learnItem('saline','use');logTreat('Промыл рану '+nm+' физраствором: чисто.','good',()=>learn('aid','wash'));}
+     else if(item==='alcohol'){w.dirt=Math.max(0,w.dirt-55);w.protect=45;spike(22);learnItem('alcohol','use');logTreat('Обработал спиртом: зараза убита, но жжёт. Рана защищена ~45 мин.','warn',()=>learn('aid','wash'));}
+     else if(item==='antiseptic'){w.dirt=Math.max(0,w.dirt-45);w.protect=90;spike(8);learnItem('antiseptic','use');logTreat('Обработал йодом: рана '+nm+' чистая и защищена.','good',()=>learn('aid','wash'));}
+     break;}
    case 'dress':{
      if(!w||!invTake(item,1))return;
      const dirty=item==='bandage_dirty'||item==='cloth';
      w.bandage={item,dirty,soak:0,cap:item==='bandage'?90:item==='cloth_clean'?65:55,t:0,wet:false};
      learnItem(item,'use');if(item==='cloth'||item==='bandage_dirty')learnItem('bandage_dirty','use');
-     blog('Повязка '+PART[pid].on+(dirty?' (нестерильная).':'.'),dirty?'warn':'good');break;}
-   case 'undress':if(w){w.bandage=null;blog('Повязка снята.','info');}break;
+     if(dirty)logTreat('Наложил нестерильную повязку '+nm+': кровь встанет, но рана грязная — промой позже.','warn',()=>learn('aid','stop'));
+     else{const br=woundBleed(b,p,pid,w);logTreat(br<0.6?'Кровотечение '+nm+' остановлено. Повязка чистая.':'Повязка '+nm+'. Кровь слабеет.','good',()=>learn('aid','stop'));}
+     break;}
+   case 'undress':if(w){const wasDirty=w.bandage&&w.bandage.dirty;w.bandage=null;logTreat('Снял повязку '+nm+(wasDirty?' (была грязная — теперь промой рану).':'.'), 'info');}break;
    case 'stitch':{
      if(!w)return;
      if(item==='suture'){if(!invTake('suture',1))return;learnItem('suture','use');}
      else{if(!invTake('thread',1)||!invTake(item,1))return;invAdd('needle_dirty',1);learnItem('needle','use');}
-     if(q<0.34){spike(16);blog('Шов не лёг: игла соскальзывает.','bad');break;}
+     if(q<0.34){spike(16);logTreat('Шов не лёг: игла соскальзывает. Попробуй ещё раз при свете.','bad');break;}
      w.stitched=true;spike(10);
-     if(w.dirt>25||w.inf>0){w.sealedDirty=true;b.st.dirtyStitch++;learnItem('suture','dirty');blog('Ты зашил грязную рану. Под швом будет гной.','bad');}
-     else blog('Рана '+PART[pid].on+' зашита.','good');
+     if(w.dirt>25||w.inf>0){w.sealedDirty=true;b.st.dirtyStitch++;learnItem('suture','dirty');logTreat('Зашил грязную рану '+nm+'! Под швом будет гной — сними шов? Нет: вскрой, промой, пей антибиотик.','bad');}
+     else logTreat('Зашил рану '+nm+'. Кровотечение остановлено, дальше — покой.','good',()=>learn('aid','close'));
      break;}
    case 'drain':{
      if(!w)return;const sterile=item==='needle';
      if(item==='needle'){invTake('needle',1);invAdd('needle_dirty',1);}
      w.inf=Math.max(0,w.inf-35);if(!sterile)w.dirt=Math.min(100,w.dirt+12);w.age=Math.min(w.age,25);spike(18);
-     blog('Гнойник вскрыт'+(sterile?'.':'. Инструмент был грязный.'),sterile?'good':'warn');break;}
+     logTreat('Вскрыл гнойник '+nm+': гной вышел, инфекции меньше.'+(sterile?'':' Инструмент был грязный — промой рану.'),sterile?'good':'warn',()=>learn('aid','abx'));break;}
    case 'extract':{
      if(!w)return;
      if(item==='tweezers'){learnItem('tweezers','use');}
-     if(q>=0.5){w.splinter=false;spike(10);blog('Осколок извлечён.','good');}
-     else{w.size=Math.min(3,w.size+1);w.dirt=Math.min(100,w.dirt+8);spike(20);blog('Осколок соскользнул и порвал ткань.','bad');}
+     if(q>=0.5){w.splinter=false;spike(10);logTreat('Достал осколок '+nm+'. Теперь промой и перевяжи.','good');}
+     else{w.size=Math.min(3,w.size+1);w.dirt=Math.min(100,w.dirt+8);spike(20);logTreat('Осколок соскользнул и порвал ткань '+nm+'! Рана стала глубже.','bad');}
      break;}
-   case 'hemo':if(w&&invTake('hemostat',1)){w.hemo=25;learnItem('hemostat','use');blog('Гемостатик схватил кровь.','good');}break;
+   case 'hemo':if(w&&invTake('hemostat',1)){w.hemo=25;learnItem('hemostat','use');logTreat('Засыпал гемостатик '+nm+': кровь свернулась, есть ~25 мин покоя.','good',()=>learn('aid','stop'));}break;
    case 'cauter':{
      if(!w)return;w.cauter=true;spike(30);addWound(b,pid,'burn',1,{dirt:2});
-     blog('Ты прижёг рану '+PART[pid].g+'. Больно.','warn');break;}
-   case 'tq':if(invTake('tourniquet',1)){p.tq={t:0};spike(12);learnItem('tourniquet','use');blog('Жгут наложен на '+PART[pid].n.toLowerCase()+'. Запомни время.','warn');}break;
-   case 'untq':if(p.tq){p.tq=null;invAdd('tourniquet',1);spike(10);blog('Жгут снят. Кровь возвращается в конечность.','info');}break;
-   case 'splint':if(invTake('splint',1)){p.splint=true;learnItem('splint','use');blog('Шина наложена: '+PART[pid].n.toLowerCase()+'.','good');}break;
-   case 'unsplint':if(p.splint){p.splint=false;invAdd('splint',1);blog('Шина снята.','info');}break;
+     logTreat('Прижёг рану '+nm+': кровь встала, но остался ожог и сильная боль.','warn',()=>learn('aid','stop'));break;}
+   case 'tq':if(invTake('tourniquet',1)){p.tq={t:0};spike(12);learnItem('tourniquet','use');logTreat('Наложил жгут '+PART[pid].on+': кровоток перекрыт. Сними раньше, чем через 2 часа!','warn',()=>learn('aid','tq'));}break;
+   case 'untq':if(p.tq){const t=Math.round(p.tq.t);p.tq=null;invAdd('tourniquet',1);spike(10);
+     if(t>70)logTreat('Снял жгут после '+t+' мин. Следи: ткани могли пострадать.','warn',()=>learn('aid','tq'));
+     else logTreat('Снял жгут ('+t+' мин). Кровь возвращается в конечность.','good',()=>learn('aid','tq'));}break;
+   case 'splint':if(invTake('splint',1)){p.splint=true;learnItem('splint','use');logTreat('Наложил шину: '+PART[pid].n.toLowerCase()+'. Боль меньше, можно идти.','good');}break;
+   case 'unsplint':if(p.splint){p.splint=false;invAdd('splint',1);logTreat('Снял шину.','info');}break;
    case 'reduce':{
      if(q>=0.5){
-       if(p.disloc){p.disloc=false;spike(20);blog('Вывих вправлен.','good');}
-       else if(p.bone===3){p.bone=2;p.boneT=0;const ow=p.wounds.find(x=>x.type==='open');if(ow){ow.type='lac';ow.size=2;}spike(32);blog('Кость вправлена. Теперь рану надо зашить и наложить шину.','good');}
+       if(p.disloc){p.disloc=false;spike(20);logTreat('Вправил вывих: '+PART[pid].n.toLowerCase()+'. Теперь покой и шина.','good');}
+       else if(p.bone===3){p.bone=2;p.boneT=0;const ow=p.wounds.find(x=>x.type==='open');if(ow){ow.type='lac';ow.size=2;}spike(32);logTreat('Вправил кость. Дальше: зашить рану и наложить шину.','good');}
      }else{spike(30);
-       if(p.disloc&&chance(0.4)){p.disloc=false;breakBone(b,pid,2);}
-       else blog('Не вышло. Больно, но кость на месте не встала.','bad');}
+       if(p.disloc&&chance(0.4)){p.disloc=false;breakBone(b,pid,2);logTreat('Вправление сорвалось — кость треснула! Нужна шина.','bad');}
+       else logTreat('Не вышло вправить: больно, кость не встала. Попробуй ещё раз.','bad');}
      break;}
    case 'decomp':{
      if(item==='needle'){invTake('needle',1);invAdd('needle_dirty',1);}else invTake('needle_dirty',1)&&invAdd('needle_dirty',1);
-     if(q>=0.5){b.pneumo=0;spike(15);blog('Воздух вышел со свистом. Дышать легче.','good');}
-     else{addWound(b,'chest','stab',1,{dirt:30});spike(20);blog('Игла прошла мимо.','bad');}
+     if(q>=0.5){b.pneumo=0;spike(15);logTreat('Спустил воздух из груди: дышать легче.','good');}
+     else{addWound(b,'chest','stab',1,{dirt:30});spike(20);logTreat('Игла прошла мимо и поранила грудь. Промой рану.','bad');}
      break;}
   }
 }
@@ -2094,6 +2254,7 @@ function render(){
   if(G.place){const {tx,ty}=placeTarget(),ok=placeValid(G.place.id,tx,ty),sz=STRUCT[G.place.id].size||1;ctx.fillStyle=ok?'rgba(120,255,160,.28)':'rgba(255,80,80,.3)';ctx.fillRect(tx*TILE,ty*TILE,sz*TILE,sz*TILE);ctx.strokeStyle=ok?'#7dffa4':'#ff6a6a';ctx.lineWidth=1.5;ctx.strokeRect(tx*TILE,ty*TILE,sz*TILE,sz*TILE);}
   // искры и дым
   for(const f of G.fx){const a=clamp(f.life/f.max,0,1);ctx.fillStyle=f.col.replace('A',(a*(f.al||0.8)).toFixed(2));ctx.beginPath();ctx.arc(f.x,f.y,f.size*(f.grow?2-a:1),0,TAU);ctx.fill();}
+  drawTexts();
   // галлюцинации
   for(const hh of G.halluc){ctx.globalAlpha=clamp(hh.t/hh.max,0,1)*0.55;ctx.fillStyle='#05070a';ctx.beginPath();ctx.ellipse(hh.x,hh.y,8,20,0,0,TAU);ctx.fill();ctx.globalAlpha=1;}
   // свет
@@ -2151,7 +2312,7 @@ function drawSketch(c2,id,w,h){
 
 /* ================= ИНТЕРФЕЙС: HUD, панели, журнал, ввод ================= */
 const UI={sel:'chest',invSel:null,jcat:'creature',jsel:null,touch:false,feed:[],lastSig:''};
-const PAUSING=['journal','map','note','text','menu','start','dead','end','help'];
+const PAUSING=['journal','map','note','text','menu','start','dead','end','help','admin'];
 function $$(id){return document.getElementById(id);}
 function toast(msg,cls){
   const box=$$('toasts');if(!box)return;
@@ -2166,9 +2327,13 @@ function onBlog(msg,cls){
 }
 function closePanels(){
   $$('panels').innerHTML='';G.uiOpen=null;G.paused=false;
+  if(G.in){G.in.atk=false;G.in.tx=0;G.in.ty=0;}
+  UI.rt=0;
 }
 function openOv(name,node,cls){
   const box=$$('panels');box.innerHTML='';G.uiOpen=name;G.paused=PAUSING.includes(name);
+  if(G.in){G.in.atk=false;G.in.tx=0;G.in.ty=0;}
+  UI.rt=0;
   const ov=h('div',{class:'ov '+(cls||''),id:'ov-'+name},node);
   ov.addEventListener('pointerdown',e=>{if(e.target===ov&&!['start','dead','end'].includes(name)&&name!=='text')closePanels();});
   box.append(ov);return ov;
@@ -2185,6 +2350,8 @@ function togglePanel(name){
 }
 function refreshPanel(){
   const o=G.uiOpen;if(!o)return;
+  if(o!=='body'&&o!=='inv'&&o!=='craft')return;
+  if(!$('panels').firstChild)return;
   const pb=document.querySelector('#panels .pb'),sc=pb?pb.scrollTop:0;
   if(o==='body')showBody(true);else if(o==='inv')showInv(true);else if(o==='craft')showCraft(true);
   const pb2=document.querySelector('#panels .pb');if(pb2)pb2.scrollTop=sc;
@@ -2201,6 +2368,7 @@ function vRow(l,v,cl){return h('div',{class:cl||''},h('span',{text:l}),h('span',
 function worstPart(b){let best=null,bs=0;for(const id in b.parts){const p=b.parts[id];let sc=partSev(b,id)*1000;for(const w of p.wounds)sc+=woundBleed(b,p,id,w);if(sc>bs){bs=sc;best=id;}}return best;}
 function showBody(keep){
   const P=G.P,b=P.body,bl=bleedTotal(b);
+  try{if(typeof jSeen==='function')jSeen('aid');}catch(e){}
   if(!keep){const wp=worstPart(b);if(wp)UI.sel=wp;}
   if(!PART[UI.sel])UI.sel='head';
   let svg='<svg viewBox="0 0 100 165">';
@@ -2229,7 +2397,7 @@ function showBody(keep){
   const body=h('div',{class:'pb'},h('p',{class:'worldwarn',text:'Мир не ждёт. Закрой панель и беги, если рядом опасно.'}),grid,partDetail(UI.sel),
     h('div',{class:'bl'},G.blog.slice(-8).reverse().map(l=>h('div',{text:fmtClock(l.t)+'  '+l.m}))));
   const pn=panelShell('Осмотр тела',b.dead?'':'самолечение',body);
-  if(keep&&$$('ov-body')){const ov=$$('ov-body');ov.innerHTML='';ov.append(pn);return;}
+  if(keep){const ov=$$('ov-body');if(!ov)return;ov.innerHTML='';ov.append(pn);return;}
   openOv('body',pn,'side');
 }
 function partDetail(pid){
@@ -2253,19 +2421,40 @@ function partDetail(pid){
   box.append(h('div',{class:'row'},po.map(o=>optBtn(o,pid,null))));
   if(dark)box.append(h('div',{class:'st',text:'В темноте плохо видно — работай при свете костра или фонаря.'}));
   for(const w of p.wounds){
-    const T=WT[w.type],br=woundBleed(b,p,pid,w);
+    const T=WT[w.type],br=woundBleed(b,p,pid,w),ph=woundPhase(b,p,pid,w);
     const c=h('div',{class:'card',style:'margin:8px 0 0;background:#0e181c'});
     c.append(h('h4',{text:SIZE_W[w.size-1]+' · '+T.n.toLowerCase()}));
+    c.append(h('div',{class:'ph2 '+ph.cls,text:ph.label}));
     const st=[];
     st.push(bleedWord(br)+(br>=0.4?' (~'+br.toFixed(0)+' мл/мин)':''));
     if(!dark){st.push(dirtWord(w.dirt));if(w.inf>=10)st.push(INF_WORD[infStage(w.inf)]);}
+    else st.push('в темноте грязь не разглядеть');
     if(w.bandage){const bd=w.bandage;st.push(bd.soak>=bd.cap?'повязка промокла':'повязка '+(bd.dirty?'нестерильная':'стерильная')+' · пропитана на '+Math.round(bd.soak/bd.cap*100)+'%');}
-    if(w.stitched)st.push('зашита'+(w.sealedDirty?' (под швом грязь)':''));
+    if(w.stitched)st.push('зашита'+(w.sealedDirty?' (под швом грязь!)':'')); 
     if(w.cauter)st.push('прижжена');if(w.hemo>0)st.push('гемостатик');if(w.splinter)st.push('в ране осколок');
     if(br<0.6&&w.dirt<60&&w.inf<12)st.push('заживает: '+Math.round(w.heal)+'%');
     c.append(h('div',{class:'st',text:st.join(' · ')}));
+    const bars=h('div',{class:'wbars'});
+    const bar=(l,v,col)=>{const r=h('div',{class:'wbar'},h('span',{text:l}),h('div',{class:'tr'},h('i',{style:'width:'+Math.round(clamp(v,0,100))+'%;background:'+col})),h('span',{text:Math.round(clamp(v,0,100))+'%'}));bars.append(r);};
+    bar('Кровь',clamp(br/35*100,0,100),br>2?'#c8403a':'#e8a24a');
+    bar('Грязь',w.dirt,w.dirt>=65?'#c8403a':w.dirt>=35?'#d9a441':'#6fae8a');
+    bar('Инфекция',w.inf,w.inf>=35?'#c8403a':w.inf>=10?'#d9a441':'#6fae8a');
+    bar('Заживление',w.heal,'#6fae8a');
+    if(w.bandage)bar('Повязка',w.bandage.soak/w.bandage.cap*100,w.bandage.soak>=w.bandage.cap?'#c8403a':'#5a8593');
+    c.append(bars);
+    const plan=treatPlan(b,p,pid,w);
+    const pe=h('div',{class:'plan'});
+    pe.append(h('b',{text:'Что делать: '}));
+    plan.forEach((s,i)=>{pe.append(h('div',{class:s.done?'done':(i===plan.findIndex(x=>!x.done)?'nxt':''),text:(s.done?'✓ ':'• ')+s.t}));});
+    c.append(pe);
     c.append(h('div',{class:'row',style:'margin-top:6px'},treatOptions(pid,w).map(o=>optBtn(o,pid,w.id))));
     box.append(c);
+  }
+  if(G.treatLog&&G.treatLog.length){
+    const tl=h('div',{class:'card',style:'margin-top:8px;background:#0c1417'});
+    tl.append(h('h4',{text:'Журнал лечения'}));
+    tl.append(h('div',{class:'bl'},G.treatLog.slice(-6).reverse().map(l=>h('div',{text:fmtClock(l.t)+'  '+l.m}))));
+    box.append(tl);
   }
   return box;
 }
@@ -2306,7 +2495,7 @@ function showInv(keep){
   const body=h('div',{class:'pb'},h('p',{class:'worldwarn',text:'Время идёт, пока ты копаешься в рюкзаке.'}),
     h('div',{style:'font-size:12.5px;color:#71878e;margin-bottom:8px;font-family:var(--mono)'},'Вес '+w.toFixed(1)+' / '+cap.toFixed(0)+' кг'+(eqs?'  ·  В руках и на теле: '+eqs:'')),grid,det);
   const pn=panelShell('Рюкзак',null,body);
-  if(keep&&$$('ov-inv')){const ov=$$('ov-inv');ov.innerHTML='';ov.append(pn);return;}
+  if(keep){const ov=$$('ov-inv');if(!ov)return;ov.innerHTML='';ov.append(pn);return;}
   openOv('inv',pn);
 }
 /* ---------- КРАФТ ---------- */
@@ -2324,7 +2513,7 @@ function showCraft(keep){
     }
   }
   const pn=panelShell('Ремесло',nearBench()?'у верстака':'',body);
-  if(keep&&$$('ov-craft')){const ov=$$('ov-craft');ov.innerHTML='';ov.append(pn);return;}
+  if(keep){const ov=$$('ov-craft');if(!ov)return;ov.innerHTML='';ov.append(pn);return;}
   openOv('craft',pn);
 }
 /* ---------- ЯЩИК ---------- */
@@ -2380,7 +2569,7 @@ function showJournal(keep){
   }
   const body=h('div',{class:'jbody'},jl,page);
   const pn=h('div',{class:'pn'},h('div',{class:'ph'},h('h2',{text:'Журнал'}),h('span',{class:'sub',text:'открыто '+a+' из '+bb}),h('button',{class:'x',text:'✕',onclick:closePanels})),tabs,body);
-  if(keep&&$$('ov-journal')){const ov=$$('ov-journal');ov.innerHTML='';ov.append(pn);return;}
+  if(keep){const ov=$$('ov-journal');if(!ov)return;ov.innerHTML='';ov.append(pn);return;}
   openOv('journal',pn,'jr');
 }
 function secretBlock(e){
@@ -2434,9 +2623,61 @@ function showMenu(){
     h('button',{class:'btn pri',text:'Продолжить',onclick:closePanels}),
     h('button',{class:'btn',text:AU.muted?'Звук: выключен':'Звук: включён',onclick:()=>{auMute(!AU.muted);showMenu();}}),
     h('button',{class:'btn',text:'Управление',onclick:showHelp}),
+      G.admin?h('button',{class:'btn pri',text:'Админ-панель',onclick:showAdmin}):null,
     h('button',{class:'btn dng',text:'Начать заново',onclick:()=>{if(confirm('Начать новую игру? Журнал сохранится.')){newGame();}}})),
     h('p',{class:'legend',style:'text-align:center',text:'Игра сохраняется сама каждые 15 секунд.'}));
   openOv('menu',panelShell('Пауза',null,body));
+}
+/* ---------- АДМИН-ПАНЕЛЬ (режим «Песочница») ---------- */
+function adminHeal(){
+  const b=G.P.body;
+  b.blood=CFG.BLOOD0;b.sepsis=0;b.temp=36.8;b.cons=100;b.unc=false;b.uncT=0;b.painSpike=0;
+  b.sanity=100;b.energy=100;b.hunger=100;b.thirst=100;b.pneumo=0;b.poison=0;b.nausea=0;b.concussion=0;b.shock=0;
+  for(const k in b.parts){const p=b.parts[k];p.wounds=[];p.bone=0;p.boneT=0;p.splint=false;p.disloc=false;p.tq=null;p.press=false;p.internal=0;p.necro=0;p.frost=0;p.bruise=0;p.hp=100;}
+  logTreat('Админ: полное исцеление.','good');
+}
+function adminKit(kind){
+  const P=G.P;
+  const give=(id,n)=>invAdd(id,n);
+  if(kind==='med'){['bandage','antiseptic','suture','painkiller','antibiotic','saline'].forEach(id=>give(id,3));give('tourniquet',2);give('splint',2);give('hemostat',2);give('blanket',1);}
+  else if(kind==='wpn'){give('knife',1);give('spear',1);give('club',1);give('torch',2);give('battery',4);give('matches',10);give('lighter',1);}
+  else if(kind==='build'){give('wood',12);give('rope',6);give('cloth',6);give('nails',6);give('scrap',6);give('stick',10);}
+  else if(kind==='food'){give('beans',3);give('chocolate',2);give('bottle_clean',2);give('bread',2);}
+  toast('Админ: набор «'+({med:'медицина',wpn:'оружие',build:'стройка',food:'еда'})[kind]+'» выдан.','get');sfx('rustle');
+}
+function adminTeleport(k){
+  const p=W.poi[k];if(!p)return;const P=G.P;
+  const s=walkableSpawn(p.x,p.y,20,60,30)||{x:p.x+40,y:p.y+40};
+  P.x=s.x;P.y=s.y;P.lastX=P.x;P.lastY=P.y;G.cam.x=P.x;G.cam.y=P.y;
+  closePanels();toast('Админ: телепорт — '+p.n+'.','info');
+}
+function adminTime(op){
+  if(op==='hour'){G.pt+=60;toast('Админ: +1 час.','info');}
+  else if(op==='toggle'){
+    if(G.phase==='night'){G.phase='day';G.pt=0;dawnBegin();onDawn();}
+    else{G.phase='night';G.pt=0;G.night++;nightBegin();onDusk();}
+    closePanels();
+  }
+}
+function showAdmin(){
+  if(!G.admin){toast('Админка доступна только в режиме «Песочница».','warn');return;}
+  const P=G.P;
+  const sec=t=>h('div',{class:'gh',text:t});
+  const btn=(l,fn,cls)=>h('button',{class:'btn '+(cls||''),style:'margin:2px',onclick:()=>{fn();if(G.uiOpen==='admin')showAdmin();}},l);
+  const body=h('div',{class:'pb'},
+    sec('Состояние · режим '+G.runMode+' · ночь '+G.night),
+    h('div',{class:'row'},btn('Бессмертие: '+(G.god?'ВКЛ':'выкл'),()=>{G.god=!G.god;toast('Админ: бессмертие '+(G.god?'включено.':'выключено.'),'info');},G.god?'pri':''),btn('Вылечить полностью',adminHeal),btn('Сбросить ласт-стенд',()=>{G.flags.lastStandUsed=0;toast('Админ: ласт-стенд снова доступен.','info');})),
+    sec('Наборы предметов'),
+    h('div',{class:'row'},btn('Медицина',()=>adminKit('med')),btn('Оружие и свет',()=>adminKit('wpn')),btn('Стройка',()=>adminKit('build')),btn('Еда и вода',()=>adminKit('food'))),
+    sec('Телепорты'),
+    h('div',{class:'row'},Object.keys(W.poi).map(k=>btn(W.poi[k].n,()=>adminTeleport(k)))),
+    sec('Время и погода'),
+    h('div',{class:'row'},btn('+1 час',()=>adminTime('hour')),btn('День/ночь',()=>adminTime('toggle')),btn('Дождь: '+(G.weather.tRain>0?'ВКЛ':'выкл'),()=>{G.weather.tRain=G.weather.tRain>0?0:1;}),btn('Туман: '+(G.weather.tFog>0?'ВКЛ':'выкл'),()=>{G.weather.tFog=G.weather.tFog>0?0:1;})),
+    sec('Существа'),
+    h('div',{class:'row'},btn('Волк рядом',()=>{const s=walkableSpawn(P.x,P.y,60,110,20);if(s)spawnEnt('wolf',s.x,s.y,{tm:4});}),btn('Кабан рядом',()=>{const s=walkableSpawn(P.x,P.y,60,110,20);if(s)spawnEnt('boar',s.x,s.y);}),btn('Медведь рядом',()=>{const s=walkableSpawn(P.x,P.y,120,180,20);if(s)spawnEnt('bear',s.x,s.y);}),btn('Убить всех тварей',()=>{for(const e of G.ents)if(!e.dead&&!EDEF[e.t].ghost&&(e.t==='wolf'||e.t==='boar'||e.t==='bear'||e.t==='rat'))killEnt(e);toast('Админ: твари убиты.','info');},'dng')),
+    sec('Журнал'),
+    h('div',{class:'row'},btn('Открыть все записи',()=>{for(const id in JR){JS.seen[id]=1;for(const f of JR[id].facts)JS.facts[id+'.'+f.k]=1;}jSave();toast('Админ: журнал полностью открыт.','jr');})));
+  openOv('admin',panelShell('Админ-панель','песочница',body));
 }
 function showHelp(){openOv('help',panelShell('Управление',null,h('div',{class:'pb'},h('div',{class:'legend',style:'font-size:14px',html:HELP_HTML}),h('p',{class:'legend',html:'Кровь пахнет далеко. Огонь держит волков, но не всё остальное. Свет фонаря останавливает того, кто идёт со спины. Если позовёт голос — <b>не отвечай</b>. Или проверь, что будет.'}))));}
 function showStart(){
@@ -2444,8 +2685,10 @@ function showStart(){
   const [a,bb]=jCount();
   const box=h('div',{class:'center fadein',style:'width:min(100%,560px);padding:14px'},
     h('h1',{class:'title',text:'До рассвета'}),h('p',{class:'tag2',text:'Ночь в Сизой пуще. Выжить — значит успеть перевязаться.'}),
-    h('div',{class:'scr'},has?h('button',{class:'btn pri',text:'Продолжить',onclick:()=>{auInit();auResume();if(!loadGame())newGame();}}):null,
-      h('button',{class:has?'btn':'btn pri',text:'Новая игра',onclick:()=>{auInit();auResume();newGame();}}),
+    h('div',{class:'scr'},has?h('button',{class:'btn pri',text:'Продолжить',onclick:()=>{auInit();auResume();if(!loadGame())newGame('story');}}):null,
+      h('button',{class:has?'btn':'btn pri',text:'Новая игра (сюжет)',onclick:()=>{auInit();auResume();newGame('story');}}),
+      h('button',{class:'btn',text:'Выживание (бесконечно)',onclick:()=>{auInit();auResume();newGame('survival');}}),
+      h('button',{class:'btn',text:'Песочница (админ)',onclick:()=>{auInit();auResume();newGame('sandbox');}}),
       h('button',{class:'btn',text:'Журнал ('+a+'/'+bb+')',onclick:()=>{showJournal();}}),
       h('button',{class:'btn',text:'Управление',onclick:showHelp})),
     h('p',{class:'legend',style:'text-align:center;margin-top:16px',html:'Ты — фельдшер Артём. Скорая ушла в кювет по дороге на вызов, которого нет на картах. Ночь длинная. Волки уже учуяли кровь.'}));
@@ -2460,6 +2703,7 @@ function showDeath(){
   if(st.tqMax>120)why.push('Жгут держался '+Math.round(st.tqMax)+' мин — ткани начали отмирать.');
   if(st.inf3>0&&d.cause!=='Сепсис')why.push('Инфекция дошла до гнойной стадии — антибиотик и чистка нужны раньше.');
   if(st.treated===0)why.push('Ни одного лечебного действия за всю игру. Кнопка «Тело» — сверху.');
+  if(G.flags.lastStandUsed)why.push('Последний шанс уже был использован — второго не будет.');
   if(!why.length)why.push('Иногда ночь просто сильнее. Журнал запомнил всё, что ты узнал.');
   const box=h('div',{class:'pn dth center fadein',style:'width:min(100%,560px);padding:20px'},
     h('h2',{text:'Ты умер'}),h('div',{class:'why',text:d.cause+'. '+d.detail}),
@@ -2503,10 +2747,13 @@ function buildHUD(){
 function updateHUD(){
   const P=G.P,b=P.body;if(!P)return;
   const env=G.envLast||{amb:0};
-  $$('clock').innerHTML='Ночь '+G.night+' · <b>'+fmtClock(clockNow())+'</b><br>'+(G.phase==='day'?'☀ день':'☾ ночь')+' · '+Math.round(env.amb)+'°'+(G.weather.rain>0.3?' · ☔':'')+(G.weather.fog>0.4?' · 🌫':'');
+  $$('clock').innerHTML=(G.runMode==='survival'?'Выживание · ночь ':G.runMode==='sandbox'?'Песочница · ночь ':'Ночь ')+G.night+' · <b>'+fmtClock(clockNow())+'</b><br>'+(G.phase==='day'?'☀ день':'☾ ночь')+' · '+Math.round(env.amb)+'°'+(G.weather.rain>0.3?' · ☔':'')+(G.weather.fog>0.4?' · 🌫':'');
   VT.forEach((t,i)=>{const val=clamp(t[2](b),0,100);vtEls[i][1].style.width=val+'%';vtEls[i][0].className='vt'+(val<22?' low':val<45?' mid':'');});
   const chips=[],bl=bleedTotal(b);
   if(b.unc)chips.push(['','Без сознания']);
+  if(!G.flags.lastStandUsed&&(b.blood<3000||b.sepsis>60))chips.push(['i','Последний шанс готов']);
+  if(G.flags.lastStandUsed)chips.push(['i','Последний шанс использован']);
+  if(G.god)chips.push(['i','Бессмертие']);
   if(bl>3)chips.push(['','Кровотечение · '+bl.toFixed(0)+' мл/мин']);
   if(b.pain>65)chips.push(['w','Сильная боль']);if(b.shock>45)chips.push(['w','Шок']);
   if(b.temp<35.5)chips.push(['i','Холод '+b.temp.toFixed(1)+'°']);if(b.temp>38.2)chips.push(['w','Жар']);
@@ -2523,8 +2770,9 @@ function updateHUD(){
   $$('bJr').classList.toggle('flash',G.newFlash>0);
   $$('bRest').firstChild.textContent=P.resting?'☀':'☾';
   $$('bRun').classList.toggle('on',!!G.in.sprintT);
-  const ls=eqStack('light');$$('bLight').classList.toggle('on',!!(ls&&P.lightOn));
-}
+   const ls=eqStack('light');$$('bLight').classList.toggle('on',!!(ls&&P.lightOn));
+  try{updateActbar();}catch(e){}
+ }
 /* ---------- ВВОД ---------- */
 const K={};
 function doInteract(){
@@ -2558,7 +2806,7 @@ function initInput(){
     keyAction(e.code);
   });
   addEventListener('keyup',e=>{K[e.code]=false;if(e.code==='Space')inp.atk=false;});
-  addEventListener('blur',()=>{for(const k in K)K[k]=false;inp.atk=false;});
+  addEventListener('blur',()=>{for(const k in K)K[k]=false;inp.atk=false;inp.mx=0;inp.my=0;inp.tx=0;inp.ty=0;inp.sprintT=false;});
   const cvs=$$('c');
   addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){inp.usingMouse=true;inp.mxs=e.clientX;inp.mys=e.clientY;}});
   cvs.addEventListener('pointerdown',e=>{
@@ -2599,8 +2847,8 @@ function pollInput(){
   let mx=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0),my=(K.KeyS||K.ArrowDown?1:0)-(K.KeyW||K.ArrowUp?1:0);
   if(inp.tx||inp.ty){mx+=inp.tx;my+=inp.ty;}
   inp.mx=mx;inp.my=my;inp.sprint=!!(K.ShiftLeft||K.ShiftRight||inp.sprintT);
-  const P=G.P;
-  if(inp.usingMouse&&!UI.touch){const [wx,wy]=s2w(inp.mxs,inp.mys);inp.wmx=wx;inp.wmy=wy;inp.aim=Math.atan2(wy-P.y,wx-P.x);}
+   const P=G.P;
+   if(inp.usingMouse&&!UI.touch){const [wx,wy]=s2w(inp.mxs,inp.mys);inp.wmx=wx;inp.wmy=wy;const _d=Math.hypot(wx-P.x,wy-P.y);if(_d>26){const _a=Math.atan2(wy-P.y,wx-P.x);if(isFinite(_a))inp.aim=_a;}}
   else inp.aim=null;
 }
 
@@ -2623,14 +2871,16 @@ function populate(){
 }
 function resetState(seed){
   G.seed=seed;G.time=0;G.phase='night';G.pt=0;G.night=1;G.flags={};G.weather={rain:0,fog:0,wind:0.2,tRain:0,tFog:0,tWind:0.2};
-  G.blog=[];G.stats={kills:0,built:0};G.ents=[];G.items=[];G.structs=[];G.corpses=[];G.decals=[];G.fx=[];G.texts=[];G.halluc=[];G.sp={};G.evac=null;
+  G.blog=[];G.treatLog=[];G.moodHist=[];G.moodT=0;G.stats={kills:0,built:0};G.ents=[];G.items=[];G.structs=[];G.corpses=[];G.decals=[];G.fx=[];G.texts=[];G.halluc=[];G.sp={};G.evac=null;
   G.fires=[];G.mini=null;G.place=null;G.over=null;G.echo=null;G.callPrompt=null;G.pendingNote=null;G.hint=null;G.ff=1;G.paused=false;G.newFlash=0;G.damageFlash=0;G.cam={x:0,y:0,shake:0};
   $$('feed').innerHTML='';$$('toasts').innerHTML='';
 }
-function newGame(){
+function newGame(mode){
   closePanels();
+  if(mode)G.runMode=mode;else if(!G.runMode)G.runMode='story';
   const seed=1+Math.floor(Math.random()*1e9);
   resetState(seed);genWorld(seed);
+  G.admin=G.runMode==='sandbox'?1:0;if(G.runMode!=='sandbox')G.god=0;
   G.P=newPlayer();G.P.x=W.start.x;G.P.y=W.start.y;G.P.lastX=G.P.x;G.P.lastY=G.P.y;
   startInventory();crashInjuries(G.P.body);
   populate();nightBegin();
@@ -2647,7 +2897,7 @@ function saveGame(){
     if(G.mode!=='play'||G.over||!G.P||G.P.body.dead)return;
     const P=G.P,b=Object.assign({},P.body);delete b.lastBleedSrc;delete b.lastInfSrc;
     let seen='';for(let i=0;i<W.seen.length;i++)seen+=W.seen[i]?'1':'0';
-    const s={v:CFG.VERSION,seed:G.seed,time:G.time,phase:G.phase,pt:G.pt,night:G.night,flags:G.flags,weather:G.weather,stats:G.stats,sp:G.sp,evac:G.evac,
+    const s={v:CFG.VERSION,seed:G.seed,time:G.time,phase:G.phase,pt:G.pt,night:G.night,flags:G.flags,weather:G.weather,stats:G.stats,sp:G.sp,evac:G.evac,runMode:G.runMode,god:G.god?1:0,admin:G.admin?1:0,
       P:{x:P.x,y:P.y,aim:P.aim,inv:P.inv,lightOn:P.lightOn,wet:P.wet,stam:P.stam,body:b},
       structs:G.structs.map(x=>Object.assign({},x)),items:G.items,mods:W.mods,seen,corpses:G.corpses,
       ents:G.ents.filter(e=>!e.dead&&!EDEF[e.t].ghost).map(e=>({t:e.t,x:e.x,y:e.y,hp:e.hp,st:e.st,hx:e.home.x,hy:e.home.y})),blog:G.blog.slice(-30),ids:{wid:WID,eid:EID}};
@@ -2659,6 +2909,7 @@ function loadGame(){
     const s=JSON.parse(localStorage.getItem(CFG.RUN_KEY)||'null');if(!s||s.v!==CFG.VERSION)return false;
     closePanels();resetState(s.seed);genWorld(s.seed);applyMods(s.mods||{});
     G.time=s.time;G.phase=s.phase;G.pt=s.pt;G.night=s.night;G.flags=s.flags||{};G.weather=s.weather;G.stats=s.stats||{};G.sp=s.sp||{};G.evac=s.evac;G.blog=s.blog||[];
+    G.runMode=s.runMode||'story';G.god=!!s.god;G.admin=!!s.admin;
     const P=newPlayer();Object.assign(P,{x:s.P.x,y:s.P.y,aim:s.P.aim,inv:s.P.inv,lightOn:s.P.lightOn,wet:s.P.wet,stam:s.P.stam,body:s.P.body});P.lastX=P.x;P.lastY=P.y;G.P=P;
     for(const k in P.body.parts)P.body.parts[k].press=false;
     for(const st of s.structs){const d=STRUCT[st.t],sz=d.size||1;G.structs.push(st);if(d.solid)for(let y=st.ty;y<st.ty+sz;y++)for(let x=st.tx;x<st.tx+sz;x++)setBlock(y*WW+x,4,true);}
@@ -2683,7 +2934,7 @@ function onDeath(){
 function onDawn(){
   blog('Рассвет. Ночь '+G.night+' позади.','good');toast('Рассвет. Пуща спит. Днём работай.','jr');
   if(G.night>=3)learn('pusha','b');
-  if(G.evac&&G.night===G.evac.night){
+  if(G.evac&&G.night===G.evac.night&&G.runMode!=='survival'){
     const st=W.poi.station;
     if(Math.hypot(G.P.x-st.x,G.P.y-st.y)<560){setTimeout(()=>endGame('A'),1200);}
     else{G.evac.night++;blog('Вертолёт прилетел к Кордону и не нашёл тебя. Он вернётся следующим рассветом.','warn');}
@@ -2708,6 +2959,7 @@ let tFlow=0,tHint=0,tSlow=0,tSave=0,tUI=0,tFilter=0,tHal=0;
 function update(dt){
   const P=G.P,b=P.body;
   G.time+=dt;G.pt+=dt;
+  G.moodT=(G.moodT||0)+dt;if(G.moodT>1){G.moodT=0;if(P&&!b.dead){G.moodHist.push(Math.round(b.sanity));if(G.moodHist.length>600)G.moodHist.shift();}}
   if(G.phase==='night'&&G.pt>=CFG.NIGHT){G.phase='day';G.pt=0;dawnBegin();onDawn();}
   else if(G.phase==='day'&&G.pt>=CFG.DAY){G.phase='night';G.pt=0;G.night++;nightBegin();onDusk();}
   const wt=G.weather;
@@ -2748,7 +3000,7 @@ function frame(ts){
   pollInput();
   try{
     if(!G.paused){const n=G.ff>1?G.ff:1;for(let i=0;i<n;i++)update(dt);
-      tHint-=dt;if(tHint<=0){tHint=0.1;G.hint=(G.uiOpen&&G.uiOpen!=='body')?null:findInteract();}
+      tHint-=dt;if(tHint<=0){tHint=0.15;G.hint=G.uiOpen?null:findInteract();}
       tSave+=dt;if(tSave>15){tSave=0;saveGame();}
       auUpdate(dt);
     }
@@ -2756,7 +3008,7 @@ function frame(ts){
     updateMiniUI();
     tUI-=dt;if(tUI<=0){tUI=0.12;updateHUD();}
     tFilter-=dt;if(tFilter<=0){tFilter=0.4;const b=G.P.body,bl=clamp((70-b.cons)/14+b.concussion/45,0,5),sat=clamp(1-b.shock/170,0.4,1);cv.style.filter=(bl>0.3||sat<1)?'blur('+bl.toFixed(1)+'px) saturate('+sat.toFixed(2)+')':'none';}
-    if(!UI.down&&(G.uiOpen==='body'||G.uiOpen==='inv'||G.uiOpen==='craft')){UI.rt=(UI.rt||0)-dt;if(UI.rt<=0){UI.rt=0.9;refreshPanel();}}
+    if(!UI.down&&(G.uiOpen==='body'||G.uiOpen==='inv'||G.uiOpen==='craft')){UI.rt=(UI.rt||0)-dt;if(UI.rt<=0){UI.rt=2.5;refreshPanel();}}
   }catch(e){console.error(e);window.__err=(window.__err||[]);window.__err.push(String(e&&e.stack||e));}
 }
 function boot(){
@@ -2764,7 +3016,7 @@ function boot(){
   addEventListener('pointerdown',()=>{UI.down=true;auInit();auResume();},true);addEventListener('pointerup',()=>{UI.down=false;},true);addEventListener('pointercancel',()=>{UI.down=false;},true);
   addEventListener('keydown',()=>{auInit();auResume();},{once:true});
   showStart();requestAnimationFrame(frame);
-  window.__dawn={G,newGame,update,saveGame,loadGame,get W(){return W;},startTreat,treatOptions,partOptions,invAdd,invCount,craft,findInteract,doInteract,itemActions,showBody,showInv,showCraft,showJournal,showMap,addWound,bluntHit,breakBone,bodyTick,spawnEnt,learn,jRead,JS,JR,ITEMS,PART,RECIPES,endGame,computeEnv,updateSpawner,nightBegin,dawnBegin,equip,placeStruct,attackPlayer,answerEcho,useRadio,showNote,startRest,render,updateHUD,togglePanel,closePanels,miniTap,refreshPanel,pollInput,UI,K,saveGameNow:saveGame,recipeStatus,placeTarget,confirmPlace,toggleLight,playerAttack,interruptAction,bodyAdvice,bleedTotal,handsOK,moveFactor,steady,crashInjuries,newBody};
+  window.__dawn={G,newGame,update,saveGame,loadGame,get W(){return W;},startTreat,treatOptions,partOptions,invAdd,invCount,craft,findInteract,doInteract,itemActions,showBody,showInv,showCraft,showJournal,showMap,addWound,bluntHit,breakBone,bodyTick,spawnEnt,learn,jRead,JS,JR,ITEMS,PART,RECIPES,endGame,computeEnv,updateSpawner,nightBegin,dawnBegin,equip,placeStruct,attackPlayer,answerEcho,useRadio,showNote,startRest,render,updateHUD,togglePanel,closePanels,miniTap,refreshPanel,pollInput,UI,K,saveGameNow:saveGame,recipeStatus,placeTarget,confirmPlace,toggleLight,playerAttack,interruptAction,bodyAdvice,bleedTotal,handsOK,moveFactor,steady,crashInjuries,newBody,tryLastStand,lastStandChance,moodForLastStand,woundPhase,treatPlan,logTreat,floatText,updateActbar,showAdmin,adminHeal,adminKit};
 }
 window.addEventListener('DOMContentLoaded',boot);
 
